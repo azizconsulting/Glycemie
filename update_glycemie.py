@@ -42,7 +42,11 @@ def process_data():
             if f.endswith('.csv'):
                 df = pd.read_csv(p)
             elif f.endswith('.xls'):
-                df = pd.read_excel(p, engine='xlrd')
+                # Google Drive exporte parfois du .xlsx avec l'extension .xls
+                try:
+                    df = pd.read_excel(p, engine='xlrd')
+                except Exception:
+                    df = pd.read_excel(p, engine='openpyxl')
             else:
                 df = pd.read_excel(p, engine='openpyxl')
             df.columns = [c.strip() for c in df.columns]
