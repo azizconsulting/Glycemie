@@ -17,7 +17,7 @@ def run_cmd(cmd_list, cwd=REPO_PATH):
 
 def fetch_files():
     print("📥 Récupération des fichiers du Google Drive...")
-    query = f"'{FOLDER_ID}' in parents"
+    query = f"'{FOLDER_ID}' in parents and trashed = false"
     res = run_cmd(["gws", "drive", "files", "list", "--params", json.dumps({"q": query, "fields": "files(id, name, mimeType)"})])
     if not res: return
     files = json.loads(res).get("files", [])
@@ -48,6 +48,10 @@ def process_data():
             all_dfs.append(temp.dropna())
         except: continue
     
+    if not all_dfs:
+        print("⚠️ Aucune donnée valide trouvée pour construire le graphe !")
+        return
+
     full = pd.concat(all_dfs).sort_values('t')
     stats = {
         "avg": full['v'].mean(),

@@ -25,7 +25,7 @@ def run_gws(cmd_list):
         return None
 
 def fetch_files():
-    query = f"'{FOLDER_ID}' in parents"
+    query = f"'{FOLDER_ID}' in parents and trashed = false"
     res = run_gws(["drive", "files", "list", "--params", json.dumps({"q": query, "fields": "files(id, name, mimeType)"})])
     if not res: return []
     files = json.loads(res).get("files", [])
