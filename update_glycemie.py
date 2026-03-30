@@ -69,7 +69,8 @@ def sync_github():
     print("🚀 Poussée vers GitHub...")
     run_cmd(["git", "add", "."])
     run_cmd(["git", "commit", "-m", f"Auto-update CGM : {datetime.now().strftime('%d/%m/%Y %H:%M')}"])
-    run_cmd(["git", "push", "origin", "main"]) # Ou 'master' selon votre config
+    run_cmd(["git", "pull", "origin", "main", "--rebase"])  # Sync avant push
+    run_cmd(["git", "push", "origin", "main"])
     print("✨ Site web mis à jour !")
 
 if __name__ == "__main__":
