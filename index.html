@@ -76,7 +76,24 @@
             let filtered = rawData;
             if(year !== 'all') filtered = filtered.filter(p => p.t.getFullYear() == year);
             if(month !== 'all') filtered = filtered.filter(p => p.t.getMonth() == month);
-            if(filtered.length === 0) return;
+            
+            // Toujours détruire l'ancien graphe avant de redessiner
+            if(chartInstance) { chartInstance.destroy(); chartInstance = null; }
+
+            if(filtered.length === 0) {
+                // Vider les KPIs
+                document.getElementById('avg').innerText = '-';
+                document.getElementById('max').innerText = '-';
+                document.getElementById('tir').innerText = '-';
+                // Afficher un message "Aucune donnée" sur le canvas
+                const ctx = document.getElementById('cgmChart').getContext('2d');
+                ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                ctx.fillStyle = '#8b949e';
+                ctx.font = '16px system-ui';
+                ctx.textAlign = 'center';
+                ctx.fillText('Aucune donnée pour cette période', ctx.canvas.width / 2, ctx.canvas.height / 2);
+                return;
+            }
 
             const vals = filtered.map(p => p.v);
             document.getElementById('avg').innerText = (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1);
@@ -84,7 +101,6 @@
             document.getElementById('tir').innerText = ((vals.filter(v=>v>=70&&v<=180).length/vals.length)*100).toFixed(1);
 
             const ctx = document.getElementById('cgmChart').getContext('2d');
-            if(chartInstance) chartInstance.destroy();
             chartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
