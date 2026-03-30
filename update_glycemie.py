@@ -35,18 +35,32 @@ def process_data():
     all_dfs = []
     data_path = os.path.join(REPO_PATH, DATA_DIR)
     for f in os.listdir(data_path):
+        if f.startswith('.') or not f.endswith(('.csv', '.xls', '.xlsx')):
+            continue
         try:
             p = os.path.join(data_path, f)
-            df = pd.read_csv(p) if f.endswith('.csv') else pd.read_excel(p)
+            if f.endswith('.csv'):
+                df = pd.read_csv(p)
+            elif f.endswith('.xls'):
+                df = pd.read_excel(p, engine='xlrd')
+            else:
+                df = pd.read_excel(p, engine='openpyxl')
             df.columns = [c.strip() for c in df.columns]
-            t_col = next(c for c in df.columns if 'Temps' in c or 'Time' in c)
-            g_col = next(c for c in df.columns if 'Lecture' in c or 'Glucose' in c)
+            t_col = next((c for c in df.columns if 'Temps' in c or 'Time' in c), None)
+            g_col = next((c for c in df.columns if 'Lecture' in c or 'Glucose' in c), None)
+            if not t_col or not g_col:
+                print(f"   ⚠️ Colonnes manquantes dans {f} (colonnes: {list(df.columns)})")
+                continue
             temp = df[[t_col, g_col]].copy()
             temp.columns = ['t', 'v']
             temp['t'] = pd.to_datetime(temp['t'], dayfirst=True, errors='coerce')
             temp['v'] = pd.to_numeric(temp['v'], errors='coerce')
-            all_dfs.append(temp.dropna())
-        except: continue
+            clean = temp.dropna()
+            print(f"   ✅ {f} : {len(clean)} points lus")
+            all_dfs.append(clean)
+        except Exception as e:
+            print(f"   ❌ Erreur sur {f} : {e}")
+            continue
     
     if not all_dfs:
         print("⚠️ Aucune donnée valide trouvée pour construire le graphe !")
