@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CGM Healthcare Pro - Precision Dashboard</title>
+    
+    <!-- Fonts & Scripts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+
+    <style>
+        :root {
+            /* UI UX Pro Max - Medical Theme */
+            --bg-main: #0b1120;
+            --bg-card: rgba(30, 41, 59, 0.6);
+            --accent: #38bdf8;
+            --accent-secondary: #818cf8;
+            --accent-glow: rgba(56, 189, 248, 0.3);
+            --text-main: #f1f5f9;
+            --text-dim: #94a3b8;
+            --success: #10b981;
+            --warning: #fbbf24;
+            --error: #f43f5e;
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-blur: 16px;
+            --radius-bento: 24px;
+            --transition-pro: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-main); 
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.03) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(129, 140, 248, 0.03) 0%, transparent 40%);
+            color: var(--text-main); 
+            padding: 40px 20px; 
+            min-height: 100vh;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+        
+        .header-flex { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 40px; 
+        }
+
+        h1 { 
+            font-size: 22px; 
+            font-weight: 800; 
+            letter-spacing: -0.5px;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .toolbar { 
+            display: flex; 
+            gap: 12px; 
+            background: rgba(255, 255, 255, 0.03); 
+            padding: 8px; 
+            border-radius: 16px; 
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(8px);
+        }
+
+        .filter-group { 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+            font-size: 13px; 
+            font-weight: 600;
+            color: var(--text-dim);
+            padding-left: 10px;
+        }
+        
+        select { 
+            background: rgba(15, 23, 42, 0.8); 
+            color: white; 
+            border: 1px solid var(--glass-border); 
+            padding: 8px 12px; 
+            border-radius: 10px; 
+            font-size: 13px; 
+            cursor: pointer; 
+            outline: none;
+            transition: var(--transition-pro);
+        }
+        select:hover { border-color: var(--accent); background: rgba(30, 41, 59, 1); }
+
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 20px; 
+            margin-bottom: 30px; 
+        }
+
+        @media (max-width: 768px) {
+            .grid { grid-template-columns: 1fr; }
+            .header-flex { flex-direction: column; gap: 20px; align-items: flex-start; }
+        }
+
+        .card { 
+            background: var(--bg-card); 
+            backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--glass-border); 
+            border-radius: var(--radius-bento); 
+            padding: 24px; 
+            text-align: center; 
+            transition: var(--transition-pro);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover { 
+            transform: translateY(-5px); 
+            border-color: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 12px 24px -10px var(--accent-glow);
+        }
+
+        .card::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.02), transparent);
+            pointer-events: none;
+        }
+
+        .card h2 { 
+            margin-bottom: 12px; 
+            font-size: 11px; 
+            color: var(--text-dim); 
+            text-transform: uppercase; 
+            letter-spacing: 1.5px; 
+            font-weight: 700;
+        }
+
+        .card .value { 
+            font-size: 32px; 
+            font-weight: 800; 
+            margin-bottom: 6px; 
+            color: var(--accent); 
+            letter-spacing: -1px;
+        }
+
+        .card small { font-size: 12px; color: var(--text-dim); font-weight: 500; }
+        
+        .chart-section {
+            background: var(--bg-card); 
+            backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--glass-border); 
+            border-radius: var(--radius-bento); 
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .chart-container { height: 450px; position: relative; }
+
+        /* Animation Keyframes */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-in { animation: fadeIn 0.6s var(--transition-pro) both; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-flex">
+            <h1><span style="font-size: 1.2em">📟</span> ANALYSES GLYCÉMIE <span style="font-size: 0.6em; opacity: 0.4; font-weight: 400">PRÉCISION PRO</span></h1>
+            <div class="toolbar">
+                <div class="filter-group">Année <select id="yearSelect" onchange="updateView()"></select></div>
+                <div class="filter-group" style="border-left: 1px solid var(--glass-border); padding-left: 12px;">Mois <select id="monthSelect" onchange="updateView()"></select></div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="card animate-in" style="animation-delay: 0.1s">
+                <h2>Moyenne</h2>
+                <div class="value" id="avg">-</div>
+                <small>mg/dL (Normal: 100-125)</small>
+            </div>
+            <div class="card animate-in" style="animation-delay: 0.2s">
+                <h2>Pic Maximum</h2>
+                <div class="value" id="max" style="color: var(--error)">-</div>
+                <small>Amplitude Glycémique</small>
+            </div>
+            <div class="card animate-in" style="animation-delay: 0.3s">
+                <h2>Temps cible</h2>
+                <div class="value" id="tir" style="color: var(--success)">-</div>
+                <small>% (Objectif: > 70%)</small>
+            </div>
+        </div>
+
+        <div class="chart-section animate-in" style="animation-delay: 0.4s">
+            <div class="chart-container">
+                <canvas id="cgmChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let rawData = [];
+        let chartInstance = null;
+
+        async function init() {
+            try {
+                const r = await fetch('data.json');
+                const d = await r.json();
+                rawData = d.points.map(p => ({ t: new Date(p.t), v: p.v }));
+                
+                const years = [...new Set(rawData.map(p => p.t.getFullYear()))].sort((a,b) => b-a);
+                document.getElementById('yearSelect').innerHTML = '<option value="all">Historique</option>' + years.map(y => `<option value="${y}">${y}</option>`).join('');
+                
+                const months = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
+                document.getElementById('monthSelect').innerHTML = '<option value="all">Année complète</option>' + months.map((m, i) => `<option value="${i}">${m}</option>`).join('');
+                
+                updateView();
+            } catch (e) {
+                console.error("Erreur chargement data:", e);
+                document.body.innerHTML += `<div style="color:red; text-align:center; margin-top:20px">Erreur: data.json non trouvé ou invalide.</div>`;
+            }
+        }
+
+        function updateView() {
+            const year = document.getElementById('yearSelect').value;
+            const month = document.getElementById('monthSelect').value;
+            let filtered = rawData;
+            if(year !== 'all') filtered = filtered.filter(p => p.t.getFullYear() == year);
+            if(month !== 'all') filtered = filtered.filter(p => p.t.getMonth() == month);
+            
+            if(chartInstance) { chartInstance.destroy(); chartInstance = null; }
+
+            if(filtered.length === 0) {
+                document.getElementById('avg').innerText = '-';
+                document.getElementById('max').innerText = '-';
+                document.getElementById('tir').innerText = '-';
+                return;
+            }
+
+            const vals = filtered.map(p => p.v);
+            document.getElementById('avg').innerText = (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1);
+            document.getElementById('max').innerText = Math.max(...vals);
+            document.getElementById('tir').innerText = ((vals.filter(v=>v>=70&&v<=180).length/vals.length)*100).toFixed(1);
+
+            const ctx = document.getElementById('cgmChart').getContext('2d');
+            
+            // Create Gradient for Line
+            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, 'rgba(56, 189, 248, 0.2)');
+            gradient.addColorStop(1, 'rgba(56, 189, 248, 0.0)');
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'Glucose (mg/dL)',
+                        data: filtered.map(p => ({ x: p.t, y: p.v })),
+                        borderColor: '#38bdf8',
+                        borderWidth: 2.5,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        backgroundColor: gradient,
+                        hoverBorderWidth: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { intersect: false, mode: 'index' },
+                    scales: {
+                        x: { 
+                            type: 'time', 
+                            time: { unit: 'day', displayFormats: { day: 'dd MMM' } }, 
+                            grid: { display: false }, 
+                            ticks: { color: '#64748b', font: { size: 11 } } 
+                        },
+                        y: { 
+                            min: 40, max: 450, 
+                            grid: { color: 'rgba(255,255,255,0.03)' }, 
+                            ticks: { color: '#64748b', font: { size: 11 } } 
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            titleFont: { size: 13, weight: 'bold' },
+                            bodyFont: { size: 13 },
+                            padding: 12,
+                            displayColors: false,
+                            borderColor: 'rgba(255,255,255,0.1)',
+                            borderWidth: 1
+                        }
+                    }
+                }
+            });
+        }
+        init();
+    </script>
+</body>
+</html>
